@@ -9,12 +9,22 @@ import { EGOOGLEADDRESS } from '../constants'
 import { injectRules } from '../addressRulesContext'
 import { injectAddressContext } from '../addressContainerContext'
 import { injectIntl } from '../intl/utils'
+import Modal from './../Modal'
 
+import DeliveryForm from './DeliveryForm'
+import GeoSelector from './GeoSelector'
 class GeolocationInput extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
+      formData: {},
+      selectedLocation: {
+        departamento: '',
+        provincia: '',
+        distrito: '',
+        codigoPostal: '',
+      },
       address: this.props.address,
     }
 
@@ -47,11 +57,11 @@ class GeolocationInput extends Component {
 
     const options = rules.abbr
       ? {
-          types: ['address'],
-          componentRestrictions: {
-            country: rules.abbr,
-          },
-        }
+        types: ['address'],
+        componentRestrictions: {
+          country: rules.abbr,
+        },
+      }
       : { types: ['address'] }
 
     if (useSearchBox) {
@@ -136,6 +146,91 @@ class GeolocationInput extends Component {
     }))
   }
 
+
+
+  openModal = () => {
+    this.setState({ isModalOpen: true });
+  };
+
+  closeModal = () => {
+    this.setState({ isModalOpen: false });
+  };
+
+  handleFormChange = (updatedData) => {
+    this.setState({ formData: updatedData });
+  };
+
+  handleFormSubmit = (formData) => {
+    console.log("Datos del formulario:", formData);
+    this.props.onChangeAddress(
+      {
+        "addressId": {
+          "value": Date.now()
+        },
+        "country": {
+          "value": "PER"
+        },
+        "addressType": {
+          "value": "residential"
+        },
+        "city": {
+          "value": formData.distrito
+        },
+        "complement": {
+          "value": formData.complement
+        },
+        "geoCoordinates": {
+          "value": []
+        },
+        "neighborhood": {
+          "value": formData.provincia
+        },
+        "number": {
+          "value": formData.number
+        },
+        "postalCode": {
+          "value": " - "
+        },
+        "receiverName": {
+          "value": "Daniel rh"
+        },
+        "reference": {
+          "value": formData.reference
+        },
+        "state": {
+          "value": formData.departamento
+        },
+        "street": {
+          "value": formData.street
+        },
+        "addressQuery": {
+          "value": ""
+        },
+        "isDisposable": {}
+      }
+    )
+  };
+
+
+  componentDidUpdate(prevProps) {
+// complement: "d"
+// departamento: "Junín"
+// distrito: "Miraflores"
+// number: "d"
+// provincia: "Lima"
+// receiver: "d"
+// reference: "d"
+// street: "d"
+    if (JSON.stringify(prevProps?.formData?.departamento) !== JSON.stringify(this?.props?.departamento)) {
+       this.props.formData
+    }
+  }
+
+
+  handleGeoChange = (location) => {
+    this.setState({ selectedLocation: location });
+  };
+
   render() {
     const {
       Input,
@@ -148,6 +243,15 @@ class GeolocationInput extends Component {
 
     const { address, isValidGoogleAddress } = this.state
 
+    const fields = [
+      { name: "street", label: "Dirección", type: "text" },
+      { name: "number", label: "Número", type: "text" },
+      { name: "complement", label: "Complemento", type: "text" },
+      { name: "reference", label: "Referencia", type: "text" },
+      { name: "receiver", label: "Receptor", type: "text" },
+    ];
+
+
     const newAddress = {
       ...address,
       addressQuery: {
@@ -159,8 +263,20 @@ class GeolocationInput extends Component {
       },
     }
 
+
+
     return (
-      <Input
+
+      <>
+        <Modal isOpen={true} onClose={this.closeModal} title={"Añade una nueva dirección"}>
+          {/* <DeliveryForm fields={fields} onSubmit={handleFormSubmit} /> */}
+          <GeoSelector onChange={this.handleGeoChange} />
+
+          <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
+          {JSON.stringify(address)}
+        </Modal>
+
+        {/* <Input
         {...inputProps}
         key={rules.country}
         field={{
@@ -173,7 +289,8 @@ class GeolocationInput extends Component {
         autoFocus={autoFocus}
         onChange={!loadingGoogle ? this.handleChangeInput : () => {}}
         inputRef={!loadingGoogle ? this.handleMountInput : undefined}
-      />
+      /> */}
+      </>
     )
   }
 }
