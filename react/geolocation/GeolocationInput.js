@@ -20,13 +20,13 @@ import {
   Autocomplete,
   MarkerF,
 } from '@react-google-maps/api'
-
 class GeolocationInput extends Component {
 
   constructor(props) {
     super(props)
 
     this.state = {
+      deliveryChannel: this.getLocalStorageValue('activeDeliveryChannel', 'delivery'),
       isLoaded: false,
       formData: {},
       readyData: false,
@@ -43,6 +43,7 @@ class GeolocationInput extends Component {
 
     this.handleMountInput = this.handleMountInput.bind(this)
   }
+
 
   // eslint-disable-next-line camelcase
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -236,6 +237,42 @@ class GeolocationInput extends Component {
     // this.getGeocode("pasaje san jose 105 cerro colorado arequipa");
 
   };
+  componentDidMount() {
+    console.log("this.state.deliveryChannel: ",this.state.deliveryChannel);
+    
+    window.addEventListener('storage', this.handleStorageChange)
+    this.localStorageCheckInterval = setInterval(() => {
+      const currentValue = this.getLocalStorageValue('activeDeliveryChannel', 'delivery')
+      if (currentValue !== this.state.deliveryChannel) {
+        console.log('----');
+        
+        this.setState({ deliveryChannel: currentValue })
+      }
+    }, 1000) 
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('storage', this.handleStorageChange)
+    if (this.localStorageCheckInterval !== undefined) {
+      clearInterval(this.localStorageCheckInterval)
+    }
+  }
+
+  getLocalStorageValue = (key, defaultValue) => {
+    try {
+      return JSON.parse(window?.localStorage?.getItem(key) || '""') || defaultValue
+    } catch (error) {
+      return defaultValue
+    }
+  }
+
+  handleStorageChange = (event) => {
+    console.log('----------');
+    
+    if (event.key === 'activeDeliveryChannel') {
+      this.setState({ deliveryChannel: event.newValue })
+    }
+  }
 
   componentDidUpdate(prevProps, prevState) {
     const { formData } = this.state;
@@ -312,15 +349,18 @@ class GeolocationInput extends Component {
         loading: loadingGoogle,
       },
     }
+    console.log('address: ', address);
 
 
 
     return (
       <>
+
+        <h2>{this.state.deliveryChannel}</h2>
+        {this.state.deliveryChannel=='delivery'&&
         <Modal isOpen={true} onClose={this.closeModal} title={"Añade una nueva dirección"}>
           {
             this.state.readyData
-
               ?
               <div style={{ width: '320px', height: "260px" }}>
                 {coordinates ? (
@@ -416,21 +456,11 @@ class GeolocationInput extends Component {
                 <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
               </>
           }
-        </Modal>
-        {/* <Input
-        {...inputProps}
-        key={rules.country}
-        field={{
-          label: 'addressQuery',
-          name: 'addressQuery',
-        }}
-        options={null}
-        address={newAddress}
-        placeholder={placeholder}
-        autoFocus={autoFocus}
-        onChange={!loadingGoogle ? this.handleChangeInput : () => {}}
-        inputRef={!loadingGoogle ? this.handleMountInput : undefined}
-      /> */}
+        </Modal>}
+
+
+
+
       </>
     )
   }
