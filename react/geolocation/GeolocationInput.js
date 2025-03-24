@@ -330,8 +330,17 @@ class GeolocationInput extends Component {
                       zoom={15}
                       mapContainerStyle={{ width: "100%", height: "100%" }}
                     >
-                      <MarkerF position={coordinates} />
+                      <MarkerF position={coordinates}
+                        draggable={true} // Permite arrastrar el marcador
+                        onDragEnd={(event) => {
+                          const newCoordinates = {
+                            lat: event?.latLng?.lat(),
+                            lng: event?.latLng?.lng(),
+                          };
+                          this.setState({ coordinates: newCoordinates });
+                        }} />
                     </GoogleMap>
+                    {/* {JSON.stringify(this.state)} */}
                     <button
                       onClick={() => {
                         this.props.onChangeAddress(
@@ -391,8 +400,8 @@ class GeolocationInput extends Component {
                         border: "none",
                         borderRadius: "4px",
                         cursor: "pointer",
-                        fontFamily:"Outfit",
-                        marginTop:".5rem"
+                        fontFamily: "Outfit",
+                        marginTop: ".5rem"
                       }}
                     >Confirmar ubicación</button>
                   </>
