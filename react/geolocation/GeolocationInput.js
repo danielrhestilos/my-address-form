@@ -349,15 +349,15 @@ class GeolocationInput extends Component {
         loading: loadingGoogle,
       },
     }
-    console.log('address: ', address);
+    console.log('address: ', address.addressType);
 
-
+    if(address.addressType?.value !== 'residential'){
+      return null
+    }
 
     return (
       <>
-
-        <h2>{this.state.deliveryChannel}</h2>
-        {this.state.deliveryChannel=='delivery'&&
+         
         <Modal isOpen={true} onClose={this.closeModal} title={"Añade una nueva dirección"}>
           {
             this.state.readyData
@@ -456,12 +456,14 @@ class GeolocationInput extends Component {
                 <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
               </>
           }
-        </Modal>}
+        </Modal>
+        
 
 
 
 
       </>
+        
     )
   }
 }
