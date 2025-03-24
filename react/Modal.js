@@ -1,27 +1,42 @@
-import React, { Component, ReactNode } from "react";
-import ReactDOM from "react-dom";
-import styles from "./modal.css"; // Importa la hoja de estilos externa
+import React, { useEffect } from 'react'
+import ReactDOM from 'react-dom'
+import styles from './modal.css'
 
 
-class Modal extends Component {
-  render() {
-    const { isOpen, onClose, children ,title} = this.props;
 
-    if (!isOpen) return null;
+const Modal= ({ isOpen, onClose, children, title }) => {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
 
-    return ReactDOM.createPortal(
-      <div className={styles.modalOverlay}>
-        <div className={styles.modalContent}>
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
+
+  if (!isOpen) return null
+
+  return ReactDOM.createPortal(
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <div className={styles.modalHeader}>
           <button onClick={onClose} className={styles.modalClose}>
             ✕
           </button>
           <h2 className={styles.modalTitle}>{title}</h2>
-          <div className={styles.modalBody}>{children}</div>
         </div>
-      </div>,
-      document.body
-    );
-  }
+        <div className={styles.modalBody}>{children}</div>
+      </div>
+    </div>,
+    document.body
+  )
 }
 
-export default Modal;
+export default Modal

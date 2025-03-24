@@ -1,0 +1,16 @@
+.geoSelector {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.selectContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.geoSelect {
+    max-width: 115px;
+}

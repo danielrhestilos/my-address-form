@@ -13,18 +13,31 @@ import Modal from './../Modal'
 
 import DeliveryForm from './DeliveryForm'
 import GeoSelector from './GeoSelector'
+
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Autocomplete,
+  MarkerF,
+} from '@react-google-maps/api'
+
 class GeolocationInput extends Component {
+
   constructor(props) {
     super(props)
 
     this.state = {
+      isLoaded: false,
       formData: {},
+      readyData: false,
       selectedLocation: {
         departamento: '',
         provincia: '',
         distrito: '',
         codigoPostal: '',
       },
+      // address: this.props.address,
+      coordinates: null, // Para almacenar la geolocalización
       address: this.props.address,
     }
 
@@ -81,7 +94,6 @@ class GeolocationInput extends Component {
 
   addAutocompleteListener = () => {
     const { autocomplete } = this
-
     return this.props.googleMaps.event.addListener(
       this.autocomplete,
       'place_changed',
@@ -160,78 +172,116 @@ class GeolocationInput extends Component {
     this.setState({ formData: updatedData });
   };
 
-  handleFormSubmit = (formData) => {
-    console.log("Datos del formulario:", formData);
-    this.props.onChangeAddress(
-      {
-        "addressId": {
-          "value": Date.now()
-        },
-        "country": {
-          "value": "PER"
-        },
-        "addressType": {
-          "value": "residential"
-        },
-        "city": {
-          "value": formData.distrito
-        },
-        "complement": {
-          "value": formData.complement
-        },
-        "geoCoordinates": {
-          "value": []
-        },
-        "neighborhood": {
-          "value": formData.provincia
-        },
-        "number": {
-          "value": formData.number
-        },
-        "postalCode": {
-          "value": " - "
-        },
-        "receiverName": {
-          "value": "Daniel rh"
-        },
-        "reference": {
-          "value": formData.reference
-        },
-        "state": {
-          "value": formData.departamento
-        },
-        "street": {
-          "value": formData.street
-        },
-        "addressQuery": {
-          "value": ""
-        },
-        "isDisposable": {}
-      }
-    )
-  };
-
-
-  componentDidUpdate(prevProps) {
-// complement: "d"
-// departamento: "Junín"
-// distrito: "Miraflores"
-// number: "d"
-// provincia: "Lima"
-// receiver: "d"
-// reference: "d"
-// street: "d"
-    if (JSON.stringify(prevProps?.formData?.departamento) !== JSON.stringify(this?.props?.departamento)) {
-       this.props.formData
-    }
-  }
-
 
   handleGeoChange = (location) => {
     this.setState({ selectedLocation: location });
   };
+  geocodeAddress = async (calle, numero, distrito, provincia, departamento) => {
+    // Construye la dirección con más detalles
+    const fullAddress = `${calle} ${numero}, ${distrito}, ${provincia}, ${departamento}`;
+    console.log("Buscando dirección:", fullAddress);
+    const geocoder = new window.google.maps.Geocoder();
+    return new Promise((resolve) => {
+      geocoder.geocode({ address: fullAddress }, (results, status) => {
+        console.log('results: ', results);
+        if (status === "OK" && results.length > 0) {
+          resolve(results[0]?.geometry?.location);
+        } else {
+          console.warn("No se encontró la dirección completa. Probando con la ciudad...");
+          // Si la dirección completa falla, intenta con solo el distrito y provincia
+          const cityAddress = `${distrito}, ${provincia}, ${departamento}, Perú`;
+          geocoder.geocode({ address: cityAddress }, (cityResults, cityStatus) => {
+            console.log("cityResults: ", cityResults);
+            if (cityStatus === "OK" && cityResults.length > 0) {
+              resolve(cityResults[0].geometry.location);
+            } else {
+              console.error("No se pudo geolocalizar ni la dirección ni la ciudad.");
+              resolve(null);
+            }
+          });
+        }
+      });
+    });
+  }
+  handleFormSubmit = (formData) => {
+    console.log("Datos del formulario:", formData)
+
+
+    if (this.state?.formData?.street !== undefined
+      &&
+      this.state?.formData?.street !== ''
+      &&
+      this.state?.formData?.number !== ''
+      &&
+      this.state?.formData?.number !== undefined
+      &&
+      this.state.formData?.complement !== ''
+      &&
+      this.state.formData?.complement !== undefined
+      &&
+      this.state.formData?.reference !== ''
+      &&
+      this.state.formData?.reference !== undefined
+      &&
+      this.state.formData?.receiver !== ''
+      &&
+      this.state.formData?.receiver !== undefined
+    ) {
+      this.setState({
+        readyData: true
+      })
+    }
+
+    // Geocodificar dirección
+    // this.getGeocode("pasaje san jose 105 cerro colorado arequipa");
+
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const { formData } = this.state;
+    const { street, number, complement, reference, receiver } = formData || {};
+
+    if (
+      street && number && complement && reference && receiver
+    ) {
+      // Verificar si los valores han cambiado
+      if (
+        prevState.formData?.street !== street ||
+        prevState.formData?.number !== number ||
+        prevState.formData?.complement !== complement ||
+        prevState.formData?.reference !== reference ||
+        prevState.formData?.receiver !== receiver
+      ) {
+        this.updateGeolocation();
+      }
+    }
+  }
+
+  async updateGeolocation() {
+    const { formData } = this.state;
+    const { street, number } = formData;
+    const selectedDistrito = this.state.selectedLocation?.distrito;
+    const selectedProvincia = this.state.selectedLocation?.provincia;
+    const selectedDepartamento = this.state.selectedLocation?.departamento;
+
+    try {
+      const geocode = await this.geocodeAddress(street, number, selectedDistrito, selectedProvincia, selectedDepartamento);
+      console.log('geocode', geocode);
+
+      // this.setGoogleMapsAddress(`${street} ${number}, ${selectedDistrito}, ${selectedProvincia}, ${selectedDepartamento}`);
+      this.setState({
+        coordinates: {
+          lat: geocode.lat(),
+          lng: geocode.lng(),
+        }
+      });
+    } catch (error) {
+      console.error('Error al obtener coordenadas:', error);
+    }
+  }
 
   render() {
+    const { coordinates } = this.state;
     const {
       Input,
       rules,
@@ -244,11 +294,11 @@ class GeolocationInput extends Component {
     const { address, isValidGoogleAddress } = this.state
 
     const fields = [
-      { name: "street", label: "Dirección", type: "text" },
+      { name: "street", label: "Calle/Avenida/Jirón", type: "text" },
       { name: "number", label: "Número", type: "text" },
-      { name: "complement", label: "Complemento", type: "text" },
+      { name: "complement", label: "Departamento,piso", type: "text" },
       { name: "reference", label: "Referencia", type: "text" },
-      { name: "receiver", label: "Receptor", type: "text" },
+      { name: "receiver", label: "Autorizado a recibir el pedido", type: "text" },
     ];
 
 
@@ -266,16 +316,98 @@ class GeolocationInput extends Component {
 
 
     return (
-
       <>
         <Modal isOpen={true} onClose={this.closeModal} title={"Añade una nueva dirección"}>
-          {/* <DeliveryForm fields={fields} onSubmit={handleFormSubmit} /> */}
-          <GeoSelector onChange={this.handleGeoChange} />
+          {
+            this.state.readyData
 
-          <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
-          {JSON.stringify(address)}
+              ?
+              <div style={{ width: '320px', height: "260px" }}>
+                {coordinates ? (
+                  <>
+                    <GoogleMap
+                      center={coordinates}
+                      zoom={15}
+                      mapContainerStyle={{ width: "100%", height: "100%" }}
+                    >
+                      <MarkerF position={coordinates} />
+                    </GoogleMap>
+                    <button
+                      onClick={() => {
+                        this.props.onChangeAddress(
+                          {
+                            "addressId": {
+                              "value": Date.now()
+                            },
+                            "country": {
+                              "value": "PER"
+                            },
+                            "addressType": {
+                              "value": "residential"
+                            },
+                            "city": {
+                              "value": this.state.selectedLocation.distrito
+                            },
+                            "complement": {
+                              "value": this.state.formData.complement
+                            },
+                            "geoCoordinates": {
+                              "value": [this?.state?.coordinates?.lng, this?.state?.coordinates?.lat]
+                            },
+                            "neighborhood": {
+                              "value": this.state.selectedLocation.provincia
+                            },
+                            "number": {
+                              "value": this.state.formData.number
+                            },
+                            "postalCode": {
+                              "value": this.state.selectedLocation.codigoPostal
+                            },
+                            "receiverName": {
+                              "value": "Daniel rh"
+                            },
+                            "reference": {
+                              "value": this.state.formData.reference
+                            },
+                            "state": {
+                              "value": this.state.selectedLocation.departamento
+                            },
+                            "street": {
+                              "value": this.state.formData.street
+                            },
+                            "addressQuery": {
+                              "value": ""
+                            },
+                            "isDisposable": {}
+                          }
+                        )
+                      }
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        backgroundColor: "#e91111",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontFamily:"Outfit",
+                        marginTop:".5rem"
+                      }}
+                    >Confirmar ubicación</button>
+                  </>
+
+                ) : (
+                  <p>Cargando mapa...</p>
+                )}
+              </div>
+              :
+              <>
+                <GeoSelector onChange={this.handleGeoChange} />
+                <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
+              </>
+          }
         </Modal>
-
         {/* <Input
         {...inputProps}
         key={rules.country}
