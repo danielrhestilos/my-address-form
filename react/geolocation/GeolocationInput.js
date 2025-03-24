@@ -413,7 +413,7 @@ class GeolocationInput extends Component {
                               "value": this.state.selectedLocation.codigoPostal
                             },
                             "receiverName": {
-                              "value": "Daniel rh"
+                              "value": this.state.formData.receiver
                             },
                             "reference": {
                               "value": this.state.formData.reference
