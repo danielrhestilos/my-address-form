@@ -76,8 +76,8 @@ class DeliveryForm extends Component {
                   onChange={this.handleChange}
                   required
                   style={{
-                    width: "88%",
-                    maxWidth:"160px",
+                    // width: "88%",
+                    // maxWidth:"160px",
                     padding: "8px",
                     border: errors[name] ? "1px solid red" : "1px solid #ccc",
                     borderRadius: "4px"
@@ -93,7 +93,6 @@ class DeliveryForm extends Component {
             onSubmit()
           }}
           style={{
-            marginTop:"1rem",
           width: "100%",
           padding: "10px",
           backgroundColor: "#e91111",

@@ -13,7 +13,8 @@ import Modal from './../Modal'
 
 import DeliveryForm from './DeliveryForm'
 import GeoSelector from './GeoSelector'
-
+// @ts-ignore
+import styles from './GeolocationInput.module.css'
 import {
   GoogleMap,
   useJsApiLoader,
@@ -30,6 +31,7 @@ class GeolocationInput extends Component {
       isLoaded: false,
       formData: {},
       readyData: false,
+      isModalOpen: false,
       selectedLocation: {
         departamento: '',
         provincia: '',
@@ -238,17 +240,17 @@ class GeolocationInput extends Component {
 
   };
   componentDidMount() {
-    console.log("this.state.deliveryChannel: ",this.state.deliveryChannel);
-    
+    console.log("this.state.deliveryChannel: ", this.state.deliveryChannel);
+
     window.addEventListener('storage', this.handleStorageChange)
     this.localStorageCheckInterval = setInterval(() => {
       const currentValue = this.getLocalStorageValue('activeDeliveryChannel', 'delivery')
       if (currentValue !== this.state.deliveryChannel) {
         console.log('----');
-        
+
         this.setState({ deliveryChannel: currentValue })
       }
-    }, 1000) 
+    }, 1000)
   }
 
   componentWillUnmount() {
@@ -268,7 +270,7 @@ class GeolocationInput extends Component {
 
   handleStorageChange = (event) => {
     console.log('----------');
-    
+
     if (event.key === 'activeDeliveryChannel') {
       this.setState({ deliveryChannel: event.newValue })
     }
@@ -351,14 +353,29 @@ class GeolocationInput extends Component {
     }
     console.log('address: ', address.addressType);
 
-    if(address.addressType?.value !== 'residential'){
+    if (address.addressType?.value !== 'residential') {
       return null
     }
 
     return (
       <>
-         
-        <Modal isOpen={true} onClose={this.closeModal} title={"Añade una nueva dirección"}>
+        <div className={styles.container}>
+          {/* {JSON.stringify(this.state)} */}
+          <div className={styles.text}>
+            <span>
+              <img  style={{height:"1rem",marginRight:".5rem"}} src="https://estilospe.vtexassets.com/arquivos/Set-Location-ICON-V0325-grey-30.svg"/>
+            </span>
+            {address?.street?.value && address?.number?.value && address?.city?.value
+              ? `${address.street.value}, ${address.number.value}, ${address.city.value}`
+              : "Por favor ingresa tu dirección"}
+          </div>
+          <div>
+            <span className={styles.changeButton} onClick={this.openModal}>
+              Cambiar
+            </span>
+          </div>
+        </div>
+        <Modal isOpen={this.state.isModalOpen} onClose={this.closeModal} title={"Añade una nueva dirección"}>
           {
             this.state.readyData
               ?
@@ -457,13 +474,13 @@ class GeolocationInput extends Component {
               </>
           }
         </Modal>
-        
+
 
 
 
 
       </>
-        
+
     )
   }
 }

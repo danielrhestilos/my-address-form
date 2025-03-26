@@ -13,9 +13,9 @@
 }
 .fullWidth input{
     width: 100%;
-    max-width: 350px !important;
+    max-width: 330px !important;
 }
-.formContainer
-.inputTextDelivery:last-child {
-    width: 96% !important;
+
+.inputTextDelivery{
+    width: 155px;
 }

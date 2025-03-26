@@ -14,6 +14,7 @@ import SelectPostalCode from './postalCodeFrom/SelectPostalCode'
 import { injectRules } from './addressRulesContext'
 import { injectAddressContext } from './addressContainerContext'
 import { injectIntl, intlShape } from './intl/utils'
+import  GeolocationInput from './geolocation/GeolocationInput'
 
 class AddressForm extends Component {
   render() {
@@ -39,7 +40,10 @@ class AddressForm extends Component {
 
     return (
       <div className={className}>
-        {fields.map((field) =>
+        *************************
+        
+        <GeolocationInput />
+        {/* {fields.map((field) =>
           isDefiningPostalCodeField(field.name, rules) ? (
             <SelectPostalCode
               Input={Input}
@@ -59,7 +63,7 @@ class AddressForm extends Component {
               notApplicableLabel={notApplicableLabel}
             />
           )
-        )}
+        )} */}
       </div>
     )
   }
