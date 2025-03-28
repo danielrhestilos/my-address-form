@@ -25,3 +25,63 @@
   .changeButton:hover {
     color: #e91111;
   }
+
+
+  .addressContainer {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column-reverse;
+    gap: 16px;
+    justify-content: center;
+
+  }
+  .titleAndButton{
+    display: flex;
+  }
+  .titleAndButton h5{
+    font-size: 1rem;
+  }
+  .titleAndButton button{
+    font-size: .7rem;
+    font-family: Outfit;
+    /* background-color: #e91111; */
+    /* color: #fff; */
+    color: #e91111;
+    border: none;
+    width: 100%;
+    margin-top: 1rem;
+    padding: .5rem;
+    text-transform: capitalize;
+    border-radius: .2rem;
+
+  }
+  .addressCard {
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    max-width: 300px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .addressCard p {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  
+  .selectButton {
+    background: #e91111;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    font-family: Outfit;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .selectButton:hover {
+    background: #c01010;
+  }

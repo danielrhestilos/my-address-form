@@ -28,6 +28,7 @@ class GeolocationInput extends Component {
 
     this.state = {
       deliveryChannel: this.getLocalStorageValue('activeDeliveryChannel', 'delivery'),
+      addNew: false,
       isLoaded: false,
       formData: {},
       readyData: false,
@@ -333,9 +334,9 @@ class GeolocationInput extends Component {
     const { address, isValidGoogleAddress } = this.state
 
     const fields = [
-      { name: "street", label: "Calle/Avenida/Jirón", type: "text" },
+      { name: "street", label: "Calle/Av./Jirón/Urb.", type: "text" },
       { name: "number", label: "Número", type: "text" },
-      { name: "complement", label: "Departamento,piso", type: "text" },
+      { name: "complement", label: "Departamento/piso/Mz,Lote", type: "text" },
       { name: "reference", label: "Referencia", type: "text" },
       { name: "receiver", label: "Autorizado a recibir el pedido", type: "text" },
     ];
@@ -356,18 +357,30 @@ class GeolocationInput extends Component {
     if (address.addressType?.value !== 'residential') {
       return null
     }
-
+    const formatAddress = (address) => {
+      if (!address) return "Agrega tu dirección";
+    
+      const { street, number, complement, neighborhood, city, state, postalCode, country } = address;
+    
+      return `${street} ${number || ""}${complement ? ", " + complement : ""}, ${neighborhood ? neighborhood + ", " : ""}${city}, ${state}, ${postalCode}, ${country}`;
+    };
     return (
       <>
         <div className={styles.container}>
           {/* {JSON.stringify(this.state)} */}
           <div className={styles.text}>
             <span>
-              <img  style={{height:"1rem",marginRight:".5rem"}} src="https://estilospe.vtexassets.com/arquivos/Set-Location-ICON-V0325-grey-30.svg"/>
+              <img style={{ height: "1rem", marginRight: ".5rem" }} src="https://estilospe.vtexassets.com/arquivos/Set-Location-ICON-V0325-grey-30.svg" />
             </span>
-            {address?.street?.value && address?.number?.value && address?.city?.value
+            {/* {vtexjs.checkout.orderForm.shippingData.address && vtexjs.checkout.orderForm.shippingData.address?.number?.value && vtexjs.checkout.orderForm.shippingData.address.city
+              ?  */}
+              {formatAddress(vtexjs.checkout.orderForm.shippingData.address)}
+              {/* `${vtexjs.checkout.orderForm.shippingData.address.street}, ${vtexjs.checkout.orderForm.shippingData.address.number}, ${vtexjs.checkout.orderForm.shippingData.address.city}` */}
+              {/* : "Nueva dirección"} */}
+
+            {/* {address?.street?.value && address?.number?.value && address?.city?.value
               ? `${address.street.value}, ${address.number.value}, ${address.city.value}`
-              : "Por favor ingresa tu dirección"}
+              : "Nueva dirección"} */}
           </div>
           <div>
             <span className={styles.changeButton} onClick={this.openModal}>
@@ -377,101 +390,154 @@ class GeolocationInput extends Component {
         </div>
         <Modal isOpen={this.state.isModalOpen} onClose={this.closeModal} title={"Añade una nueva dirección"}>
           {
-            this.state.readyData
-              ?
-              <div style={{ width: '320px', height: "260px" }}>
-                {coordinates ? (
-                  <>
-                    <GoogleMap
-                      center={coordinates}
-                      zoom={15}
-                      mapContainerStyle={{ width: "100%", height: "100%" }}
-                    >
-                      <MarkerF position={coordinates}
-                        draggable={true} // Permite arrastrar el marcador
-                        onDragEnd={(event) => {
-                          const newCoordinates = {
-                            lat: event?.latLng?.lat(),
-                            lng: event?.latLng?.lng(),
-                          };
-                          this.setState({ coordinates: newCoordinates });
-                        }} />
-                    </GoogleMap>
-                    {/* {JSON.stringify(this.state)} */}
-                    <button
-                      onClick={() => {
-                        this.props.onChangeAddress(
-                          {
-                            "addressId": {
-                              "value": Date.now()
-                            },
-                            "country": {
-                              "value": "PER"
-                            },
-                            "addressType": {
-                              "value": "residential"
-                            },
-                            "city": {
-                              "value": this.state.selectedLocation.distrito
-                            },
-                            "complement": {
-                              "value": this.state.formData.complement
-                            },
-                            "geoCoordinates": {
-                              "value": [this?.state?.coordinates?.lng, this?.state?.coordinates?.lat]
-                            },
-                            "neighborhood": {
-                              "value": this.state.selectedLocation.provincia
-                            },
-                            "number": {
-                              "value": this.state.formData.number
-                            },
-                            "postalCode": {
-                              "value": this.state.selectedLocation.codigoPostal
-                            },
-                            "receiverName": {
-                              "value": this.state.formData.receiver
-                            },
-                            "reference": {
-                              "value": this.state.formData.reference
-                            },
-                            "state": {
-                              "value": this.state.selectedLocation.departamento
-                            },
-                            "street": {
-                              "value": this.state.formData.street
-                            },
-                            "addressQuery": {
-                              "value": ""
-                            },
-                            "isDisposable": {}
-                          }
-                        )
-                      }
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        backgroundColor: "#e91111",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontFamily: "Outfit",
-                        marginTop: ".5rem"
-                      }}
-                    >Confirmar ubicación</button>
-                  </>
-
-                ) : (
-                  <p>Cargando mapa...</p>
-                )}
-              </div>
-              :
+            this.state.addNew ?
               <>
-                <GeoSelector onChange={this.handleGeoChange} />
-                <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
-              </>
+                {
+                  this.state.readyData
+                    ?
+                    <div style={{ width: '320px', height: "260px" }}>
+                      {coordinates ? (
+                        <>
+                          <GoogleMap
+                            center={coordinates}
+                            zoom={15}
+                            mapContainerStyle={{ width: "100%", height: "100%" }}
+                          >
+                            <MarkerF position={coordinates}
+                              draggable={true} // Permite arrastrar el marcador
+                              onDragEnd={(event) => {
+                                const newCoordinates = {
+                                  lat: event?.latLng?.lat(),
+                                  lng: event?.latLng?.lng(),
+                                };
+                                this.setState({ coordinates: newCoordinates });
+                              }} />
+                          </GoogleMap>
+                          <button
+                            onClick={() => {
+                              this.props.onChangeAddress(
+                                {
+                                  "addressId": {
+                                    "value": Date.now()
+                                  },
+                                  "country": {
+                                    "value": "PER"
+                                  },
+                                  "addressType": {
+                                    "value": "residential"
+                                  },
+                                  "city": {
+                                    "value": this.state.selectedLocation.distrito
+                                  },
+                                  "complement": {
+                                    "value": this.state.formData.complement
+                                  },
+                                  "geoCoordinates": {
+                                    "value": [this?.state?.coordinates?.lng, this?.state?.coordinates?.lat]
+                                  },
+                                  "neighborhood": {
+                                    "value": this.state.selectedLocation.provincia
+                                  },
+                                  "number": {
+                                    "value": this.state.formData.number
+                                  },
+                                  "postalCode": {
+                                    "value": this.state.selectedLocation.codigoPostal
+                                  },
+                                  "receiverName": {
+                                    "value": this.state.formData.receiver
+                                  },
+                                  "reference": {
+                                    "value": this.state.formData.reference
+                                  },
+                                  "state": {
+                                    "value": this.state.selectedLocation.departamento
+                                  },
+                                  "street": {
+                                    "value": this.state.formData.street
+                                  },
+                                  "addressQuery": {
+                                    "value": ""
+                                  },
+                                  "isDisposable": {}
+                                }
+                              )
+                            }
+                            }
+                            style={{
+                              width: "100%",
+                              padding: "10px",
+                              backgroundColor: "#e91111",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontFamily: "Outfit",
+                              marginTop: ".5rem"
+                            }}
+                          >Confirmar ubicación</button>
+                        </>
+
+                      ) : (
+                        <p>Cargando mapa...</p>
+                      )}
+                    </div>
+                    :
+                    <>
+                      <GeoSelector onChange={this.handleGeoChange} />
+                      <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
+                    </>
+                }
+              </> : 
+              <div>
+                <div className={styles.titleAndButton}>
+                  <h5>Tusdirecciones pro</h5>&nbsp;<button onClick={()=>{
+                    this.setState({
+                      addNew:true
+                    })
+                  }}>Agregar nueva dirección</button>
+                </div>
+                <div className={styles.addressContainer}>
+                  {vtexjs.checkout.orderForm.shippingData.availableAddresses
+                    // .slice(-3)
+                    .map((item) => (
+                      <div key={item.addressId} className={styles.addressCard}>
+                        <p>
+                          <strong>Dirección: </strong> {item?.street}, {item?.number}, {item?.complement},{item?.city}, {item?.neighborhood}, {item?.state} / tiene geoCoordinates: {JSON.stringify(item?.geoCoordinates)}
+                        </p>
+                        <button
+                          className={styles.selectButton}
+                          onClick={() =>
+                            this.props.onChangeAddress({
+                              addressId: { value: item.addressId },
+                              country: { value: "PER" },
+                              addressType: { value: "residential" },
+                              city: { value: item.city },
+                              complement: { value: item.complement },
+                              geoCoordinates: {
+                                value: [item?.geoCoordinates[0], item?.geoCoordinates[1]],
+                              },
+                              neighborhood: { value: item?.neighborhood },
+                              number: { value: item?.number },
+                              postalCode: { value: item?.postalCode },
+                              receiverName: { value: item?.receiverName },
+                              reference: { value: item?.reference },
+                              state: { value: item?.state },
+                              street: { value: item?.street },
+                              addressQuery: { value: "" },
+                              isDisposable: {},
+                            })
+                          }
+                        >
+                          Seleccionar
+                        </button>
+                      </div>
+                    ))}
+                </div>
+                <div className={styles.titleAndButton}>
+               
+                </div>
+              </div>
           }
         </Modal>
 

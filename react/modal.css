@@ -44,6 +44,7 @@
   padding: 1.5rem;
   height: auto;
   min-height: 290px;
+  max-height: 340px;
   overflow-y: auto;
   /* height: 350px; */
 }

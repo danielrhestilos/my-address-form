@@ -40,8 +40,6 @@ class AddressForm extends Component {
 
     return (
       <div className={className}>
-        *************************
-        
         <GeolocationInput />
         {/* {fields.map((field) =>
           isDefiningPostalCodeField(field.name, rules) ? (
