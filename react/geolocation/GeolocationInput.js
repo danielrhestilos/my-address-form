@@ -359,10 +359,8 @@ class GeolocationInput extends Component {
     }
     const formatAddress = (address) => {
       if (!address) return "Agrega tu dirección";
-    
-      const { street, number, complement, neighborhood, city, state, postalCode, country } = address;
-    
-      return `${street} ${number || ""}${complement ? ", " + complement : ""}, ${neighborhood ? neighborhood + ", " : ""}${city}, ${state}, ${postalCode}, ${country}`;
+      const { street, number, complement, neighborhood, city, state } = address;
+      return `${street} ${number || ""}${complement ? ", " + complement : ""},${city}, ${neighborhood ? neighborhood + ", " : ""}, ${state}`;
     };
     return (
       <>
@@ -372,19 +370,11 @@ class GeolocationInput extends Component {
             <span>
               <img style={{ height: "1rem", marginRight: ".5rem" }} src="https://estilospe.vtexassets.com/arquivos/Set-Location-ICON-V0325-grey-30.svg" />
             </span>
-            {/* {vtexjs.checkout.orderForm.shippingData.address && vtexjs.checkout.orderForm.shippingData.address?.number?.value && vtexjs.checkout.orderForm.shippingData.address.city
-              ?  */}
-              {formatAddress(vtexjs.checkout.orderForm.shippingData.address)}
-              {/* `${vtexjs.checkout.orderForm.shippingData.address.street}, ${vtexjs.checkout.orderForm.shippingData.address.number}, ${vtexjs.checkout.orderForm.shippingData.address.city}` */}
-              {/* : "Nueva dirección"} */}
-
-            {/* {address?.street?.value && address?.number?.value && address?.city?.value
-              ? `${address.street.value}, ${address.number.value}, ${address.city.value}`
-              : "Nueva dirección"} */}
+            {formatAddress(vtexjs?.checkout?.orderForm?.shippingData?.address)}
           </div>
           <div>
             <span className={styles.changeButton} onClick={this.openModal}>
-              Cambiar
+              Editar / Agregar dirección
             </span>
           </div>
         </div>
@@ -395,7 +385,7 @@ class GeolocationInput extends Component {
                 {
                   this.state.readyData
                     ?
-                    <div style={{ width: '320px', height: "260px" }}>
+                    <div style={{ width: '450px', height: "250px" }}>
                       {coordinates ? (
                         <>
                           <GoogleMap
@@ -484,16 +474,27 @@ class GeolocationInput extends Component {
                     </div>
                     :
                     <>
+                      <p><span onClick={() => {
+                        this.setState({
+                          addNew: false
+                        })
+                      }} style={{
+                        color: "#e91111",
+                        cursor: 'pointer',
+                        textDecoration: "underline"
+                      }}>Volver a la lista de direcciones</span></p>
                       <GeoSelector onChange={this.handleGeoChange} />
+
                       <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
+
                     </>
                 }
-              </> : 
+              </> :
               <div>
                 <div className={styles.titleAndButton}>
-                  <h5>Tusdirecciones pro</h5>&nbsp;<button onClick={()=>{
+                  <h5>Tusdirecciones pro</h5>&nbsp;<button onClick={() => {
                     this.setState({
-                      addNew:true
+                      addNew: true
                     })
                   }}>Agregar nueva dirección</button>
                 </div>
@@ -535,7 +536,7 @@ class GeolocationInput extends Component {
                     ))}
                 </div>
                 <div className={styles.titleAndButton}>
-               
+
                 </div>
               </div>
           }
