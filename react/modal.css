@@ -73,11 +73,12 @@
 .modalHeader {
   display: flex;
   /* border-bottom: 2px solid #e91111; */
+  padding-left: 1.4rem;
   background: #f7f7f7;
   justify-content: space-between;
   align-items: center;
   position: relative;
-  padding-left: 2rem;
+  /* padding-left: 2rem; */
   border-radius: 0.4rem 0.4rem 0 0;
 }
 

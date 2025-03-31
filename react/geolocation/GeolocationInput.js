@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import PropTypes, { number } from 'prop-types'
 import { compose } from 'recompose'
 
 import DefaultInput from '../inputs/DefaultInput'
@@ -334,11 +334,11 @@ class GeolocationInput extends Component {
     const { address, isValidGoogleAddress } = this.state
 
     const fields = [
-      { name: "street", label: "Calle/Av./Jirón/Urb.", type: "text" },
-      { name: "number", label: "Número", type: "text" },
-      { name: "complement", label: "Departamento/piso/Mz,Lote", type: "text" },
-      { name: "reference", label: "Referencia", type: "text" },
-      { name: "receiver", label: "Autorizado a recibir el pedido", type: "text" },
+      { name: "street", label: "Calle/Av./Jirón/Urb.", type: "text", placeholder: "Avenida Ejército" },
+      { name: "number", label: "Número", type: "text", placeholder: "8588" },
+      { name: "complement", label: "Departamento/piso/Mz,Lote", type: "text", placeholder: "Piso 3" },
+      { name: "reference", label: "Referencia", type: "text", placeholder: "Al frente de tienda Estilos" },
+      { name: "receiver", label: "Autorizado a recibir el pedido", type: "text", placeholder: "Daniel Ramírez" },
     ];
 
 
@@ -360,7 +360,7 @@ class GeolocationInput extends Component {
     const formatAddress = (address) => {
       if (!address) return "Agrega tu dirección";
       const { street, number, complement, neighborhood, city, state } = address;
-      return `${street} ${number || ""}${complement ? ", " + complement : ""},${city}, ${neighborhood ? neighborhood + ", " : ""}, ${state}`;
+      return `${street} ${number || ""}${complement ? ", " + complement : ""},${city}, ${neighborhood}, ${state}`;
     };
     return (
       <>
@@ -474,6 +474,18 @@ class GeolocationInput extends Component {
                     </div>
                     :
                     <>
+
+                      <GeoSelector onChange={this.handleGeoChange} />
+
+                      <DeliveryForm
+                        fields={fields}
+                        defaultValues={{
+                          street: "",
+                          number: "S/N",
+                          complement: "",
+                          reference: "",
+                          receiver: `${vtexjs.checkout.orderForm.clientProfileData.firstName} ${vtexjs.checkout.orderForm.clientProfileData.lastName}`
+                        }} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
                       <p><span onClick={() => {
                         this.setState({
                           addNew: false
@@ -483,20 +495,25 @@ class GeolocationInput extends Component {
                         cursor: 'pointer',
                         textDecoration: "underline"
                       }}>Volver a la lista de direcciones</span></p>
-                      <GeoSelector onChange={this.handleGeoChange} />
-
-                      <DeliveryForm fields={fields} onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} />
 
                     </>
                 }
               </> :
               <div>
                 <div className={styles.titleAndButton}>
-                  <h5>Tusdirecciones pro</h5>&nbsp;<button onClick={() => {
+                  <strong style={{
+                    fontSize: "1.1rem"
+                  }}>Tus direcciones</strong>&nbsp;
+                  <span style={{
+                    color:"#2658B9",
+                    fontSize:".9rem",
+                    cursor: "pointer",
+                    textDecoration: "underline"
+                  }} onClick={() => {
                     this.setState({
                       addNew: true
                     })
-                  }}>Agregar nueva dirección</button>
+                  }}>Nueva dirección</span>
                 </div>
                 <div className={styles.addressContainer}>
                   {vtexjs.checkout.orderForm.shippingData.availableAddresses

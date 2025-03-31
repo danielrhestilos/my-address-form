@@ -37,6 +37,8 @@
   }
   .titleAndButton{
     display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
   }
   .titleAndButton h5{
     font-size: 1rem;
@@ -50,6 +52,7 @@
     border: none;
     width: 100%;
     margin-top: 1rem;
+    margin-bottom: 1rem;
     padding: .5rem;
     text-transform: capitalize;
     border-radius: .2rem;
